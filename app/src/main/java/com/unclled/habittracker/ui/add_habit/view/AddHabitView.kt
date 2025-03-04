@@ -1,5 +1,6 @@
 package com.unclled.habittracker.ui.add_habit.view
 
+import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -57,6 +58,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -67,44 +69,16 @@ import com.unclled.habittracker.ui.theme.LocalColors
 import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddHabitView(vm: AddHabitVM = viewModel()) {
     val buttonStates = vm.buttonStates
-    var selectedItemIndex = vm.selectedItemIndex
-    var habitName = vm.habitName
-    var habitDescription = vm.habitDescription
-    var imageUri = vm.imageUri
+    val selectedItemIndex = vm.selectedItemIndex
+    val habitName = vm.habitName
+    val habitDescription = vm.habitDescription
+    val imageUri = vm.imageUri
 
     val context = LocalContext.current
     val colors = LocalColors.current
-    val daysOfWeek = listOf('П', 'В', 'С', 'Ч', 'П', 'С', 'В')
-    val reminderPeriod =
-        listOf(
-            "Ежедневно",
-            "Еженедельно",
-            "Раз в несколько недель",
-            "Ежемесячно",
-            "Раз в несколько месяцев"
-        )
-    var expanded by remember { mutableStateOf(false) }
-
-    val scope = rememberCoroutineScope()
-    val mutableInteractionSource = remember {
-        MutableInteractionSource()
-    }
-    val pagerState = rememberPagerState(pageCount = {
-        11
-    })
-
-    val galleryLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent(),
-        onResult = { uri ->
-            uri?.let {
-                imageUri = it
-            }
-        }
-    )
 
     Column(
         modifier = Modifier
@@ -113,248 +87,35 @@ fun AddHabitView(vm: AddHabitVM = viewModel()) {
             .padding(vertical = 10.dp, horizontal = 10.dp)
             .fillMaxSize()
     ) {
-        OutlinedTextField(
-            modifier = Modifier
-                .fillMaxWidth(),
-            maxLines = 1,
-            value = habitName,
-            onValueChange = { habitName = it },
-            label = { Text("Название цели", color = colors.text) },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = colors.border,
-                unfocusedBorderColor = colors.border,
-                focusedTextColor = colors.text,
-                unfocusedTextColor = colors.text,
-                cursorColor = colors.text
-            ),
-            shape = RoundedCornerShape(12.dp)
+        NameAndDescriptionFields(
+            habitName = habitName,
+            habitDescription = habitDescription,
+            onHabitNameChange = { vm.habitName = it },
+            onHabitDescriptionChange = { vm.habitDescription = it }
         )
-        OutlinedTextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp, bottom = 8.dp)
-                .height(100.dp),
-            maxLines = 3,
-            value = habitDescription,
-            onValueChange = { habitDescription = it },
-            label = { Text("Описание цели", color = colors.text) },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = colors.border,
-                unfocusedBorderColor = colors.border,
-                focusedTextColor = colors.text,
-                unfocusedTextColor = colors.text,
-                cursorColor = colors.text
-            ),
-            shape = RoundedCornerShape(12.dp)
+        RemainderSettings(
+            selectedItemIndex = selectedItemIndex,
+            buttonStates = buttonStates,
+            onSelectedItemIndexChange = { vm.selectedItemIndex = it },
+            onToggleDay = { vm.toggleButtonState(it) },
+            onPageSelected = { vm.selectedPeriodValue = it }
         )
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = !expanded },
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            OutlinedTextField(
-                value = reminderPeriod[selectedItemIndex],
-                onValueChange = {},
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                },
-                readOnly = true,
-                textStyle = TextStyle(
-                    fontSize = 16.sp
-                ),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = colors.border,
-                    unfocusedBorderColor = colors.border,
-                    focusedTextColor = colors.text,
-                    unfocusedTextColor = colors.text,
-                    cursorColor = colors.text
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp)
-                    .menuAnchor(MenuAnchorType.PrimaryEditable),
-                shape = RoundedCornerShape(12.dp)
-            )
-            ExposedDropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                shape = RoundedCornerShape(12.dp),
-                containerColor = colors.background,
-            ) {
-                reminderPeriod.forEachIndexed { index, item ->
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                text = item,
-                                fontSize = 16.sp,
-                                fontWeight = if (index == selectedItemIndex) FontWeight.Bold else null,
-                                color = if (index == selectedItemIndex) colors.primary else colors.text
-                            )
-                        },
-                        onClick = {
-                            selectedItemIndex = index
-                            expanded = false
-                        }
-                    )
-                }
-            }
-        }
-        if (reminderPeriod[selectedItemIndex] == "Еженедельно" || reminderPeriod[selectedItemIndex] == "Ежемесячно") {
-            Text(
-                text = "Напоминать каждый: ",
-                fontSize = 16.sp,
-                textAlign = TextAlign.Start,
-                color = colors.text,
-                modifier = Modifier.padding(start = 6.dp, top = 8.dp, bottom = 8.dp)
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                for (index in 0 until 7) {
-                    OutlinedButton(
-                        onClick = { vm.toggleButtonState(index) },
-                        colors = ButtonDefaults.buttonColors(
-                            contentColor = if (buttonStates[index]) colors.background else colors.primary,
-                            containerColor = if (buttonStates[index]) colors.primary else Color.Transparent
-                        ),
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .size(44.dp),
-                        border = BorderStroke(3.dp, Color(0xffFFE5C1)),
-                        contentPadding = PaddingValues(0.dp)
-                    ) {
-                        Text(
-                            text = daysOfWeek[index].toString(),
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center,
-                            softWrap = false
-                        )
-                    }
-                }
-            }
-        } else if (reminderPeriod[selectedItemIndex].startsWith("Раз в несколько")) {
-            val choose =
-                if (reminderPeriod[selectedItemIndex] == "Раз в несколько недель") 0 else 1
-            Text(
-                text = if (choose == 0) "Напоминать каждую" else "Напоминать каждый",
-                fontSize = 16.sp,
-                textAlign = TextAlign.Start,
-                color = colors.text,
-                modifier = Modifier.padding(start = 6.dp, top = 8.dp, bottom = 8.dp)
-            )
-            HorizontalPager(
-                modifier = Modifier,
-                state = pagerState,
-                flingBehavior = PagerDefaults.flingBehavior(
-                    state = pagerState,
-                    pagerSnapDistance = PagerSnapDistance.atMost(0)
-                ),
-                contentPadding = PaddingValues(horizontal = 180.dp),
-                pageSpacing = 32.dp,
-            ) { page ->
-                val pageNumber: Int = page + 2
-                Box(
-                    modifier = Modifier
-                        .size(50.dp)
-                        .graphicsLayer {
-                            val pageOffset = ((pagerState.currentPage - page) + pagerState
-                                .currentPageOffsetFraction).absoluteValue
-                            val percentFromCenter = 1.0f - (pageOffset / (5f / 2f))
-                            val opacity = 0.25f + (percentFromCenter * 0.75f).coerceIn(0f, 1f)
-
-                            alpha = opacity
-                            clip = true
-                        }
-                        .clickable(
-                            interactionSource = mutableInteractionSource,
-                            indication = null,
-                            enabled = true,
-                        ) {
-                            scope.launch {
-                                pagerState.animateScrollToPage(page)
-                            }
-                        }) {
-                    Text(
-                        text = pageNumber.toString(),
-                        color = colors.text,
-                        modifier = Modifier
-                            .size(50.dp)
-                            .wrapContentHeight(),
-                        fontSize = 20.sp,
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
-            Text(
-                text = if (choose == 0) "неделю" else "месяц",
-                fontSize = 16.sp,
-                textAlign = TextAlign.End,
-                color = colors.text,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(end = 6.dp)
-            )
-        }
-        Text(
-            "Обложка цели",
-            fontSize = 16.sp,
-            textAlign = TextAlign.Start,
-            color = colors.text,
-            modifier = Modifier.padding(start = 6.dp, top = 14.dp, bottom = 8.dp)
+        CoverImageSettings(
+            imageUri = imageUri,
+            onImageUriChanged = { vm.imageUri = it }
         )
-        IconButton(
-            onClick = {
-                galleryLauncher.launch("image/*")
-            },
-            modifier = Modifier
-                .padding(start = 8.dp)
-                .size(82.dp)
-        ) {
-            Box(
-                modifier = Modifier.size(82.dp)
-            ) {
-                if (imageUri == null) {
-                    Box(
-                        modifier = Modifier
-                            .matchParentSize()
-                            .clip(CircleShape)
-                            .background(colors.primary)
-                    ) {
-                        Icon(
-                            Icons.Filled.Add,
-                            contentDescription = null,
-                            tint = colors.background,
-                            modifier = Modifier
-                                .align(Alignment.Center)
-                                .size(32.dp)
-                        )
-                    }
-                } else {
-                    Image(
-                        painter = rememberAsyncImagePainter(model = imageUri),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .fillMaxSize(),
-                        contentScale = ContentScale.FillBounds,
-                    )
-                }
-            }
-        }
         Spacer(modifier = Modifier.weight(1f))
+
         Button(
             onClick = {
                 if (habitName.text != "" && habitDescription.text != "") {
                     if (selectedItemIndex != 0 && (selectedItemIndex == 1 || selectedItemIndex == 3)) {
-                        var countStates = 0
-                        for (state in buttonStates)
-                            if (state)
-                                countStates++
-                        if (countStates != 0) {
-                            /* TODO save in database. parameters: habitName, habitDesc, notify every ..., image*/
+                        var countStates = ""
+                        for (i in 0..6)
+                            if (buttonStates[i])
+                                countStates += i
+                        if (countStates != "") {
+                            vm.saveToDatabase(selectedItemIndex, countStates)
                         } else {
                             Toast.makeText(
                                 context,
@@ -363,7 +124,7 @@ fun AddHabitView(vm: AddHabitVM = viewModel()) {
                             ).show()
                         }
                     } else {
-                        /* TODO save in database. parameters: habitName, habitDesc, notify every ..., image*/
+                        vm.saveToDatabase(selectedItemIndex)
                     }
                 } else {
                     Toast.makeText(
@@ -375,7 +136,8 @@ fun AddHabitView(vm: AddHabitVM = viewModel()) {
             },
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
-                .padding(bottom = 80.dp),
+                .padding(bottom = 80.dp)
+                .height(48.dp),
             colors = ButtonDefaults.buttonColors(containerColor = colors.primary)
         ) {
             Text(
@@ -385,4 +147,294 @@ fun AddHabitView(vm: AddHabitVM = viewModel()) {
             )
         }
     }
+}
+
+@Composable
+fun CoverImageSettings(imageUri: Uri?, onImageUriChanged: (Uri) -> Unit) {
+    val colors = LocalColors.current
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+        onResult = { uri ->
+            uri?.let {
+                onImageUriChanged(it)
+            }
+        }
+    )
+
+    Text(
+        "Обложка цели",
+        fontSize = 16.sp,
+        textAlign = TextAlign.Start,
+        color = colors.text,
+        modifier = Modifier.padding(start = 6.dp, top = 14.dp, bottom = 8.dp)
+    )
+    IconButton(
+        onClick = {
+            galleryLauncher.launch("image/*")
+        },
+        modifier = Modifier
+            .padding(start = 8.dp)
+            .size(82.dp)
+    ) {
+        Box(
+            modifier = Modifier.size(82.dp)
+        ) {
+            if (imageUri == null) {
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .clip(CircleShape)
+                        .background(colors.primary)
+                ) {
+                    Icon(
+                        Icons.Filled.Add,
+                        contentDescription = null,
+                        tint = colors.background,
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .size(32.dp)
+                    )
+                }
+            } else {
+                Image(
+                    painter = rememberAsyncImagePainter(model = imageUri),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .fillMaxSize(),
+                    contentScale = ContentScale.FillBounds,
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RemainderSettings(
+    selectedItemIndex: Int,
+    buttonStates: List<Boolean>,
+    onSelectedItemIndexChange: (Int) -> Unit,
+    onToggleDay: (Int) -> Unit,
+    onPageSelected: (Int) -> Unit
+) {
+    val colors = LocalColors.current
+
+    val daysOfWeek = listOf('П', 'В', 'С', 'Ч', 'П', 'С', 'В')
+    val reminderPeriod =
+        listOf(
+            "Ежедневно",
+            "Еженедельно",
+            "Раз в несколько недель",
+            "Ежемесячно",
+            "Раз в несколько месяцев"
+        )
+    var expanded by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val mutableInteractionSource = remember {
+        MutableInteractionSource()
+    }
+    val pagerState = rememberPagerState(pageCount = {
+        11
+    })
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded },
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        OutlinedTextField(
+            value = reminderPeriod[selectedItemIndex],
+            onValueChange = {},
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+            },
+            readOnly = true,
+            textStyle = TextStyle(
+                fontSize = 16.sp
+            ),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = colors.border,
+                unfocusedBorderColor = colors.border,
+                focusedTextColor = colors.text,
+                unfocusedTextColor = colors.text,
+                cursorColor = colors.text
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp)
+                .menuAnchor(MenuAnchorType.PrimaryEditable),
+            shape = RoundedCornerShape(12.dp)
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            shape = RoundedCornerShape(12.dp),
+            containerColor = colors.background,
+        ) {
+            reminderPeriod.forEachIndexed { index, item ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = item,
+                            fontSize = 16.sp,
+                            fontWeight = if (index == selectedItemIndex) FontWeight.Bold else null,
+                            color = if (index == selectedItemIndex) colors.primary else colors.text
+                        )
+                    },
+                    onClick = {
+                        onSelectedItemIndexChange(index)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+    if (reminderPeriod[selectedItemIndex] == "Еженедельно") {
+        Text(
+            text = "Напоминать каждый: ",
+            fontSize = 16.sp,
+            textAlign = TextAlign.Start,
+            color = colors.text,
+            modifier = Modifier.padding(start = 6.dp, top = 8.dp, bottom = 8.dp)
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            for (index in 0 until 7) {
+                OutlinedButton(
+                    onClick = { onToggleDay(index) },
+                    colors = ButtonDefaults.buttonColors(
+                        contentColor = if (buttonStates[index]) colors.background else colors.primary,
+                        containerColor = if (buttonStates[index]) colors.primary else Color.Transparent
+                    ),
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .size(44.dp),
+                    border = BorderStroke(3.dp, Color(0xffFFE5C1)),
+                    contentPadding = PaddingValues(0.dp)
+                ) {
+                    Text(
+                        text = daysOfWeek[index].toString(),
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        softWrap = false
+                    )
+                }
+            }
+        }
+    } else if (reminderPeriod[selectedItemIndex].startsWith("Раз в несколько")) {
+        val choose =
+            if (reminderPeriod[selectedItemIndex] == "Раз в несколько недель") 0 else 1
+        Text(
+            text = if (choose == 0) "Напоминать каждую" else "Напоминать каждый",
+            fontSize = 16.sp,
+            textAlign = TextAlign.Start,
+            color = colors.text,
+            modifier = Modifier.padding(start = 6.dp, top = 8.dp, bottom = 8.dp)
+        )
+        HorizontalPager(
+            modifier = Modifier,
+            state = pagerState,
+            flingBehavior = PagerDefaults.flingBehavior(
+                state = pagerState,
+                pagerSnapDistance = PagerSnapDistance.atMost(0)
+            ),
+            contentPadding = PaddingValues(horizontal = 180.dp),
+            pageSpacing = 32.dp,
+        ) { page ->
+            val pageNumber: Int = page + 2
+            Box(
+                modifier = Modifier
+                    .size(50.dp)
+                    .graphicsLayer {
+                        val pageOffset = ((pagerState.currentPage - page) + pagerState
+                            .currentPageOffsetFraction).absoluteValue
+                        val percentFromCenter = 1.0f - (pageOffset / (5f / 2f))
+                        val opacity = 0.25f + (percentFromCenter * 0.75f).coerceIn(0f, 1f)
+
+                        alpha = opacity
+                        clip = true
+                    }
+                    .clickable(
+                        interactionSource = mutableInteractionSource,
+                        indication = null,
+                        enabled = true,
+                    ) {
+                        scope.launch {
+                            pagerState.animateScrollToPage(page)
+                            onPageSelected(pageNumber)
+                        }
+                    }
+                ) {
+                Text(
+                    text = pageNumber.toString(),
+                    color = colors.text,
+                    modifier = Modifier
+                        .size(50.dp)
+                        .wrapContentHeight(),
+                    fontSize = 20.sp,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+        Text(
+            text = if (choose == 0) "неделю" else "месяц",
+            fontSize = 16.sp,
+            textAlign = TextAlign.End,
+            color = colors.text,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(end = 6.dp)
+        )
+    }
+}
+
+@Composable
+fun NameAndDescriptionFields(
+    habitName: TextFieldValue,
+    habitDescription: TextFieldValue,
+    onHabitNameChange: (TextFieldValue) -> Unit,
+    onHabitDescriptionChange: (TextFieldValue) -> Unit
+) {
+    val colors = LocalColors.current
+
+    OutlinedTextField(
+        modifier = Modifier
+            .fillMaxWidth(),
+        maxLines = 1,
+        value = habitName,
+        onValueChange = onHabitNameChange,
+        label = { Text("Название цели", color = colors.text) },
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = colors.border,
+            unfocusedBorderColor = colors.border,
+            focusedTextColor = colors.text,
+            unfocusedTextColor = colors.text,
+            cursorColor = colors.text
+        ),
+        shape = RoundedCornerShape(12.dp)
+    )
+    OutlinedTextField(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp, bottom = 8.dp)
+            .height(100.dp),
+        maxLines = 3,
+        value = habitDescription,
+        onValueChange = onHabitDescriptionChange,
+        label = { Text("Описание цели", color = colors.text) },
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = colors.border,
+            unfocusedBorderColor = colors.border,
+            focusedTextColor = colors.text,
+            unfocusedTextColor = colors.text,
+            cursorColor = colors.text
+        ),
+        shape = RoundedCornerShape(12.dp)
+    )
 }
