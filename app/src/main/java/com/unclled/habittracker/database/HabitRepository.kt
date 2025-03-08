@@ -20,4 +20,10 @@ class HabitRepository(private val habitDao: HabitDao) {
             habitDao.deleteHabitById(id)
         }
     }
+
+    suspend fun increaseDayInRow(id: Long) {
+        withContext(Dispatchers.IO) {
+            habitDao.increaseDayInRow(id)
+        }
+    }
 }

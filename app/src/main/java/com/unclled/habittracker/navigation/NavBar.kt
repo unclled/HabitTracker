@@ -25,7 +25,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.unclled.habittracker.R
-import com.unclled.habittracker.ui.theme.LocalColors
+import com.unclled.habittracker.theme.LocalColors
 
 @Composable
 fun NavBar(
@@ -39,7 +39,7 @@ fun NavBar(
     Row(
         modifier
             .fillMaxWidth()
-            .background(Color(0xff222223))
+            .background(colors.statusBar)
             .padding(vertical = 12.dp, horizontal = 46.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
@@ -75,9 +75,13 @@ fun NavBar(
 }
 
 @Composable
-fun BottomNavBar(navController: NavController, modifier: Modifier = Modifier) {
+fun BottomNavBar(
+    navController: NavController,
+    navNum: Int,
+    onNavItemSelected: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
     val colors = LocalColors.current
-    var navNum by rememberSaveable { mutableIntStateOf(0) }
     Box(
         modifier
             .fillMaxWidth(),
@@ -87,14 +91,14 @@ fun BottomNavBar(navController: NavController, modifier: Modifier = Modifier) {
             navController,
             navNum = navNum,
             onNavItemSelected = { newNavNum ->
-                navNum = newNavNum
+                onNavItemSelected(newNavNum)
             },
             modifier = Modifier.align(Alignment.BottomCenter)
         )
 
         IconButton(
             onClick = {
-                navNum = -1 //сбрасываем состояние, чтобы обе иконки были НЕ выделены
+                onNavItemSelected(-1) //сбрасываем состояние, чтобы обе иконки были НЕ выделены
                 navController.navigate(NavRoutes.AddHabit.route)
             },
             modifier = Modifier

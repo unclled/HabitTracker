@@ -62,15 +62,19 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import com.unclled.habittracker.navigation.NavRoutes
 import com.unclled.habittracker.ui.add_habit.viewmodel.AddHabitVM
-import com.unclled.habittracker.ui.theme.LocalColors
+import com.unclled.habittracker.theme.LocalColors
+import com.unclled.habittracker.ui.habits.view.HabitsView
 import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
 
 @Composable
-fun AddHabitView(vm: AddHabitVM = viewModel()) {
+fun AddHabitView(vm: AddHabitVM = viewModel(), navController: NavController) {
     val buttonStates = vm.buttonStates
     val selectedItemIndex = vm.selectedItemIndex
     val habitName = vm.habitName
@@ -84,7 +88,8 @@ fun AddHabitView(vm: AddHabitVM = viewModel()) {
         modifier = Modifier
             .systemBarsPadding()
             .background(colors.background)
-            .padding(vertical = 10.dp, horizontal = 10.dp)
+            .padding(top = 40.dp, bottom = 40.dp)
+            .padding(horizontal = 10.dp)
             .fillMaxSize()
     ) {
         NameAndDescriptionFields(
@@ -102,14 +107,15 @@ fun AddHabitView(vm: AddHabitVM = viewModel()) {
         )
         CoverImageSettings(
             imageUri = imageUri,
-            onImageUriChanged = { vm.imageUri = it }
+            onImageUriChanged = { vm.imageUri = it },
+            vm = vm
         )
         Spacer(modifier = Modifier.weight(1f))
 
         Button(
             onClick = {
                 if (habitName.text != "" && habitDescription.text != "") {
-                    if (selectedItemIndex != 0 && (selectedItemIndex == 1 || selectedItemIndex == 3)) {
+                    if (selectedItemIndex != 0 && selectedItemIndex == 1) {
                         var countStates = ""
                         for (i in 0..6)
                             if (buttonStates[i])
@@ -133,6 +139,7 @@ fun AddHabitView(vm: AddHabitVM = viewModel()) {
                         Toast.LENGTH_LONG
                     ).show()
                 }
+                navController.navigate(NavRoutes.Habits.route)
             },
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
@@ -150,14 +157,15 @@ fun AddHabitView(vm: AddHabitVM = viewModel()) {
 }
 
 @Composable
-fun CoverImageSettings(imageUri: Uri?, onImageUriChanged: (Uri) -> Unit) {
+fun CoverImageSettings(imageUri: String?, onImageUriChanged: (String) -> Unit, vm: AddHabitVM) {
     val colors = LocalColors.current
+    val context = LocalContext.current
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
         onResult = { uri ->
             uri?.let {
-                onImageUriChanged(it)
+                onImageUriChanged(it.toString())
             }
         }
     )
@@ -180,7 +188,7 @@ fun CoverImageSettings(imageUri: Uri?, onImageUriChanged: (Uri) -> Unit) {
         Box(
             modifier = Modifier.size(82.dp)
         ) {
-            if (imageUri == null) {
+            if (imageUri == "") {
                 Box(
                     modifier = Modifier
                         .matchParentSize()
@@ -197,6 +205,10 @@ fun CoverImageSettings(imageUri: Uri?, onImageUriChanged: (Uri) -> Unit) {
                     )
                 }
             } else {
+                val imagePath = vm.saveImageToCache(context, imageUri!!.toUri())
+                if (imagePath != null) {
+                    vm.imageUri = imagePath
+                }
                 Image(
                     painter = rememberAsyncImagePainter(model = imageUri),
                     contentDescription = null,

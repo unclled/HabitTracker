@@ -1,9 +1,12 @@
 package com.unclled.habittracker.database.model
 
+import android.icu.text.DateFormat
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.unclled.habittracker.ui.habits.model.DayOfWeek
+import java.util.Date
 
 @Entity(
     tableName = "habit",
@@ -22,5 +25,7 @@ data class HabitEntity(
     val habitDescription: String,
     val reminder: String,
     val reminderId: Int,
-    val imageUri: String?
+    val daysInRow: Int = 0,
+    val imageUri: String?,
+    val dateOfCreating: String
 )

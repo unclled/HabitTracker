@@ -1,4 +1,4 @@
-package com.unclled.habittracker.ui.theme
+package com.unclled.habittracker.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
@@ -16,6 +16,7 @@ data class ColorPalette(
     val secondaryText: Color,
     val icon: Color,
     val border: Color,
+    val statusBar: Color
 )
 
 val baseLightPalette = ColorPalette(
@@ -24,7 +25,8 @@ val baseLightPalette = ColorPalette(
     text = primaryTextColor,
     secondaryText = secondaryTextColor,
     icon = iconColor,
-    border = borderColor
+    border = borderColor,
+    statusBar = statusBarColor
 )
 val baseDarkPalette = baseLightPalette.copy(
     background = primaryDarkBackground,
@@ -32,7 +34,8 @@ val baseDarkPalette = baseLightPalette.copy(
     text = primaryTextColor,
     secondaryText = secondaryTextColor,
     icon = iconColor,
-    border = borderColor
+    border = borderColor,
+    statusBar = statusBarColor
 )
 
 @Composable
@@ -46,11 +49,11 @@ fun HabitTrackerTheme(
     val systemUiController = rememberSystemUiController()
     if (darkTheme) {
         systemUiController.setStatusBarColor(
-            color = primaryDarkBackground
+            color = statusBarColor
         )
     } else {
         systemUiController.setStatusBarColor(
-            color = primaryLightBackground
+            color = statusBarColor
         )
     }
 

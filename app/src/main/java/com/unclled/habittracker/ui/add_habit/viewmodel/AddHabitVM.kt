@@ -1,6 +1,7 @@
 package com.unclled.habittracker.ui.add_habit.viewmodel
 
 import android.app.Application
+import android.content.Context
 import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -13,7 +14,14 @@ import androidx.lifecycle.viewModelScope
 import com.unclled.habittracker.database.HabitsDatabase
 import com.unclled.habittracker.database.HabitRepository
 import com.unclled.habittracker.database.model.HabitEntity
+import com.unclled.habittracker.ui.habits.model.DayOfWeek
 import kotlinx.coroutines.launch
+import java.io.File
+import java.io.InputStream
+import java.io.OutputStream
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 class AddHabitVM(application: Application) : AndroidViewModel(application) {
     private val repository: HabitRepository
@@ -22,8 +30,12 @@ class AddHabitVM(application: Application) : AndroidViewModel(application) {
     var selectedItemIndex by mutableIntStateOf(0)
     var habitName by mutableStateOf(TextFieldValue(""))
     var habitDescription by mutableStateOf(TextFieldValue(""))
-    var imageUri by mutableStateOf<Uri?>(null)
+    //var imageUri by mutableStateOf<Uri?>(null)
     var selectedPeriodValue by mutableIntStateOf(2)
+    var imageUri by mutableStateOf("")
+    private val calendar = Calendar.getInstance()
+    private val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+    private val formattedDate = dateFormat.format(calendar.time)
 
     init {
         val habitDao = HabitsDatabase.getInstance(application).getHabitDao()
@@ -41,7 +53,8 @@ class AddHabitVM(application: Application) : AndroidViewModel(application) {
             habitDescription = habitDescription.text,
             reminder = countStates,
             reminderId = reminderId,
-            imageUri = imageUri.toString()
+            imageUri = imageUri,
+            dateOfCreating = formattedDate
         )
 
         viewModelScope.launch {
@@ -59,11 +72,32 @@ class AddHabitVM(application: Application) : AndroidViewModel(application) {
             habitDescription = habitDescription.text,
             reminder = reminder,
             reminderId = reminderId,
-            imageUri = imageUri.toString()
+            imageUri = imageUri,
+            dateOfCreating = formattedDate
         )
 
         viewModelScope.launch {
             repository.insertNewHabit(newHabit)
+        }
+    }
+
+    fun saveImageToCache(context: Context, uri: Uri): String? {
+        return try {
+            val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
+            val cacheDir = context.cacheDir
+            val file = File(cacheDir, "image_${System.currentTimeMillis()}.jpg")
+            val outputStream: OutputStream = file.outputStream()
+
+            inputStream?.use { input ->
+                outputStream.use { output ->
+                    input.copyTo(output)
+                }
+            }
+
+            file.absolutePath
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
         }
     }
 }

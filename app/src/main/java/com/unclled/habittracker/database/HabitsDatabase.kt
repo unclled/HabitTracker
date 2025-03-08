@@ -24,7 +24,7 @@ abstract class HabitsDatabase : RoomDatabase() {
                     HabitsDatabase::class.java,
                     "habits"
                 )
-                    .fallbackToDestructiveMigration()
+                    //.fallbackToDestructiveMigration()
                     .createFromAsset("reminderTime.db")
                     .build()
                 INSTANCE = instance

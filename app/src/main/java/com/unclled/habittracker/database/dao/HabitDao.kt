@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 import com.unclled.habittracker.database.model.HabitEntity
 
 @Dao
@@ -16,4 +17,7 @@ interface HabitDao {
 
     @Query("DELETE FROM habit WHERE id = :id")
     suspend fun deleteHabitById(id: Long)
+
+    @Query("UPDATE habit SET daysInRow = daysInRow + 1 WHERE id = :id")
+    suspend fun increaseDayInRow(id: Long)
 }
