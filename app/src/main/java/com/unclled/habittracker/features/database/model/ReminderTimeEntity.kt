@@ -1,4 +1,4 @@
-package com.unclled.habittracker.database.model
+package com.unclled.habittracker.features.database.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

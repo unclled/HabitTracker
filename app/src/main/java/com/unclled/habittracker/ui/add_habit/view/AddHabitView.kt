@@ -1,6 +1,5 @@
 package com.unclled.habittracker.ui.add_habit.view
 
-import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -69,12 +68,15 @@ import coil.compose.rememberAsyncImagePainter
 import com.unclled.habittracker.navigation.NavRoutes
 import com.unclled.habittracker.ui.add_habit.viewmodel.AddHabitVM
 import com.unclled.habittracker.theme.LocalColors
-import com.unclled.habittracker.ui.habits.view.HabitsView
 import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
 
 @Composable
-fun AddHabitView(vm: AddHabitVM = viewModel(), navController: NavController) {
+fun AddHabitView(
+    vm: AddHabitVM = viewModel(),
+    navController: NavController,
+    onHabitSaved: (Int) -> Unit
+) {
     val buttonStates = vm.buttonStates
     val selectedItemIndex = vm.selectedItemIndex
     val habitName = vm.habitName
@@ -122,6 +124,8 @@ fun AddHabitView(vm: AddHabitVM = viewModel(), navController: NavController) {
                                 countStates += i
                         if (countStates != "") {
                             vm.saveToDatabase(selectedItemIndex, countStates)
+                            onHabitSaved(0)
+                            navController.navigate(NavRoutes.Habits.route)
                         } else {
                             Toast.makeText(
                                 context,
@@ -131,6 +135,8 @@ fun AddHabitView(vm: AddHabitVM = viewModel(), navController: NavController) {
                         }
                     } else {
                         vm.saveToDatabase(selectedItemIndex)
+                        onHabitSaved(0)
+                        navController.navigate(NavRoutes.Habits.route)
                     }
                 } else {
                     Toast.makeText(
@@ -139,7 +145,6 @@ fun AddHabitView(vm: AddHabitVM = viewModel(), navController: NavController) {
                         Toast.LENGTH_LONG
                     ).show()
                 }
-                navController.navigate(NavRoutes.Habits.route)
             },
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)

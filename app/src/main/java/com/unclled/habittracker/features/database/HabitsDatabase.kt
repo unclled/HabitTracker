@@ -1,12 +1,12 @@
-package com.unclled.habittracker.database
+package com.unclled.habittracker.features.database
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room.databaseBuilder
 import androidx.room.RoomDatabase
-import com.unclled.habittracker.database.dao.HabitDao
-import com.unclled.habittracker.database.model.HabitEntity
-import com.unclled.habittracker.database.model.ReminderTimeEntity
+import com.unclled.habittracker.features.database.dao.HabitDao
+import com.unclled.habittracker.features.database.model.HabitEntity
+import com.unclled.habittracker.features.database.model.ReminderTimeEntity
 
 @Database(version = 1, entities = [HabitEntity::class, ReminderTimeEntity::class])
 abstract class HabitsDatabase : RoomDatabase() {
@@ -19,6 +19,7 @@ abstract class HabitsDatabase : RoomDatabase() {
 
         fun getInstance(context: Context): HabitsDatabase {
             return INSTANCE ?: synchronized(this) {
+                //context.deleteDatabase("habits")
                 val instance = databaseBuilder(
                     context.applicationContext,
                     HabitsDatabase::class.java,

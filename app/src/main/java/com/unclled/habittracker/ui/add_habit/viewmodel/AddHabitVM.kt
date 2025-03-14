@@ -11,10 +11,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.unclled.habittracker.database.HabitsDatabase
-import com.unclled.habittracker.database.HabitRepository
-import com.unclled.habittracker.database.model.HabitEntity
-import com.unclled.habittracker.ui.habits.model.DayOfWeek
+import com.unclled.habittracker.features.database.HabitsDatabase
+import com.unclled.habittracker.features.database.HabitRepository
+import com.unclled.habittracker.features.database.model.HabitEntity
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.InputStream
@@ -30,7 +29,6 @@ class AddHabitVM(application: Application) : AndroidViewModel(application) {
     var selectedItemIndex by mutableIntStateOf(0)
     var habitName by mutableStateOf(TextFieldValue(""))
     var habitDescription by mutableStateOf(TextFieldValue(""))
-    //var imageUri by mutableStateOf<Uri?>(null)
     var selectedPeriodValue by mutableIntStateOf(2)
     var imageUri by mutableStateOf("")
     private val calendar = Calendar.getInstance()
@@ -54,7 +52,8 @@ class AddHabitVM(application: Application) : AndroidViewModel(application) {
             reminder = countStates,
             reminderId = reminderId,
             imageUri = imageUri,
-            dateOfCreating = formattedDate
+            dateOfCreating = formattedDate,
+            lastActivityCheck = "" /* TODO check if confirmation day skipped */
         )
 
         viewModelScope.launch {
@@ -73,7 +72,8 @@ class AddHabitVM(application: Application) : AndroidViewModel(application) {
             reminder = reminder,
             reminderId = reminderId,
             imageUri = imageUri,
-            dateOfCreating = formattedDate
+            dateOfCreating = formattedDate,
+            lastActivityCheck = "" /* TODO */
         )
 
         viewModelScope.launch {

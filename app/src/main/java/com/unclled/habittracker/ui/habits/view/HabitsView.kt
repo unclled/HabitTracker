@@ -1,7 +1,5 @@
 package com.unclled.habittracker.ui.habits.view
 
-import android.graphics.drawable.Drawable
-import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -15,7 +13,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
@@ -25,8 +22,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -35,12 +37,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.LinearGradient
-import androidx.compose.ui.graphics.LinearGradientShader
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -48,7 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.unclled.habittracker.R
-import com.unclled.habittracker.database.model.HabitEntity
+import com.unclled.habittracker.features.database.model.HabitEntity
 import com.unclled.habittracker.theme.LocalColors
 import com.unclled.habittracker.ui.habits.model.DayOfWeek
 import com.unclled.habittracker.ui.habits.viewmodel.HabitsVM
@@ -58,7 +56,7 @@ import java.util.Calendar
 import java.util.Locale
 
 @Composable
-fun HabitsView(vm: HabitsVM) {
+fun HabitsView(vm: HabitsVM, mode: Int) {
     val colors = LocalColors.current
     val habits by vm.habits.observeAsState(emptyList())
 
@@ -67,12 +65,12 @@ fun HabitsView(vm: HabitsVM) {
             modifier = Modifier
                 .systemBarsPadding()
                 .background(colors.background)
-                .padding(top = 40.dp, bottom = 40.dp)
+                .padding(top = 40.dp, bottom = 65.dp)
                 .padding(horizontal = 10.dp)
                 .fillMaxSize()
         ) {
             items(habits) { habit ->
-                ItemCard(habit, vm)
+                ItemCard(habit, vm, mode)
                 Spacer(Modifier.padding(vertical = 8.dp))
             }
         }
@@ -82,46 +80,77 @@ fun HabitsView(vm: HabitsVM) {
 }
 
 @Composable
-fun NothingToShow() {
+fun ItemCard(habit: HabitEntity, vm: HabitsVM, mode: Int) {
+    val alpha = 0.2f
+    val enabled = false
     val colors = LocalColors.current
+    when (mode) {
+        0 -> { //обычное представление
+            InnerItems(vm, habit)
+        }
 
-    Column(
-        Modifier
-            .systemBarsPadding()
-            .background(colors.background)
-            .padding(horizontal = 10.dp)
-            .fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            "Вы не установили еще ни одной цели!",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            color = colors.text
-        )
-        Text(
-            "нажмите на + внизу экрана, чтобы добавить новую цель",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            color = colors.secondaryText,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 10.dp, start = 14.dp, end = 14.dp)
-        )
+        1 -> { //редактирование цели
+            Box(
+                contentAlignment = Alignment.Center
+            ) {
+                IconButton(
+                    onClick = { /* TODO update habit data */ },
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(colors.background)
+                        .size(81.dp)
+                ) {
+                    Icon(
+                        Icons.Filled.Edit,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        tint = colors.text
+                    )
+                }
+                InnerItems(vm, habit, alpha, enabled)
+            }
+        }
+
+        2 -> { //удаление цели
+            Box(
+                contentAlignment = Alignment.Center
+            ) {
+                IconButton(
+                    onClick = { vm.deleteHabitById(habit.id) },
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(colors.background)
+                        .size(81.dp)
+                ) {
+                    Icon(
+                        Icons.Filled.Delete,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        tint = colors.text
+                    )
+                }
+                InnerItems(vm, habit, alpha, enabled)
+            }
+        }
     }
+
 }
 
 @Composable
-fun ItemCard(habit: HabitEntity, vm: HabitsVM) {
+fun InnerItems(vm: HabitsVM, habit: HabitEntity, alpha: Float = 1f, enabled: Boolean = true) {
     val colors = LocalColors.current
-
     val nameChangedCase = vm.nameLikeInSentences(habit.habitName)
     val reminderId = habit.reminderId
-    val calendar = Calendar.getInstance()
-    val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
-    val currentDayOfWeek: DayOfWeek = DayOfWeek.entries[calendar.get(Calendar.DAY_OF_WEEK) - 2]
     val selectedDays = vm.convertToDayOfWeek(habit.reminder, reminderId)
+    val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+    val calendar = Calendar.getInstance()
+
+    val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK) - 2
+    val currentDayOfWeek: DayOfWeek = if (dayOfWeek < 0) {
+        DayOfWeek.entries[dayOfWeek + 7]
+    } else {
+        DayOfWeek.entries[dayOfWeek]
+    }
     val comeBackIn = when (reminderId) {
         0, 1 -> {
             val form = dateFormat.parse(habit.dateOfCreating)
@@ -158,6 +187,7 @@ fun ItemCard(habit: HabitEntity, vm: HabitsVM) {
                 border = BorderStroke(1.dp, color = colors.border)
             )
             .padding(horizontal = 12.dp)
+            .alpha(alpha)
 
     ) {
         Spacer(Modifier.padding(top = 10.dp))
@@ -165,7 +195,6 @@ fun ItemCard(habit: HabitEntity, vm: HabitsVM) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 2.dp),
-            //horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             Text(
                 nameChangedCase,
@@ -201,7 +230,8 @@ fun ItemCard(habit: HabitEntity, vm: HabitsVM) {
                         R.drawable.kitten
                     } else {
                         File(habit.imageUri!!)
-                    }),
+                    }
+                ),
                 contentDescription = null,
                 modifier = Modifier
                     .clip(CircleShape)
@@ -239,7 +269,7 @@ fun ItemCard(habit: HabitEntity, vm: HabitsVM) {
 
                 Button(
                     onClick = { vm.increaseDayInRow(habit.id) },
-                    enabled = (comeBackIn <= 0),
+                    enabled = (comeBackIn <= 0 && enabled),
                     modifier = Modifier
                         .padding(top = 10.dp)
                         .height(36.dp)
@@ -285,6 +315,37 @@ fun ItemCard(habit: HabitEntity, vm: HabitsVM) {
             }
         }
         Spacer(Modifier.padding(6.dp))
+    }
+}
+
+@Composable
+fun NothingToShow() {
+    val colors = LocalColors.current
+
+    Column(
+        Modifier
+            .systemBarsPadding()
+            .background(colors.background)
+            .padding(horizontal = 10.dp)
+            .fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            "Вы не установили еще ни одной цели!",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            color = colors.text
+        )
+        Text(
+            "нажмите на + внизу экрана, чтобы добавить новую цель",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            color = colors.secondaryText,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 10.dp, start = 14.dp, end = 14.dp)
+        )
     }
 }
 
