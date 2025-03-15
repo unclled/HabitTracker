@@ -2,8 +2,11 @@
 accompanistSystemuicontroller = "0.27.0"
 agp = "8.9.0"
 coilCompose = "2.4.0"
+composableGraphs = "v{version}"
+composeCharts = "latest_version"
 coreKtxVersion = "1.6.0"
 daggerCompiler = "2.34"
+kandyLetsPlot = "0.8.0"
 kotlin = "1.9.0"
 coreKtx = "1.15.0"
 junit = "4.13.2"
@@ -14,11 +17,13 @@ lifecycleRuntimeKtx = "2.8.7"
 activityCompose = "1.10.1"
 composeBom = "2025.02.00"
 lifecycleRuntimeKtxVersion = "2.8.7"
+mpandroidchart = "v3.1.0"
 navigationCompose = "2.8.8"
 roomRuntime = "2.6.1"
 runtimeLivedata = "1.7.8"
 ksp = "1.9.0-1.0.13"
 appcompat = "1.7.0"
+ycharts = "2.1.0"
 
 [libraries]
 accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontroller" }
@@ -26,6 +31,8 @@ androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = 
 androidx-core-ktx-v160 = { module = "androidx.core:core-ktx", version.ref = "coreKtxVersion" }
 androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycleRuntimeKtx" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
+composable-graphs = { module = "com.github.jaikeerthick:Composable-Graphs", version.ref = "composableGraphs" }
+compose-charts = { module = "io.github.ehsannarmani:compose-charts", version.ref = "composeCharts" }
 dagger = { module = "com.google.dagger:dagger", version.ref = "daggerCompiler" }
 dagger-compiler = { module = "com.google.dagger:dagger-compiler", version.ref = "daggerCompiler" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -49,6 +56,8 @@ androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "
 androidx-runtime-livedata = { module = "androidx.compose.runtime:runtime-livedata", version.ref = "runtimeLivedata" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
+mpandroidchart = { module = "com.github.PhilJay:MPAndroidChart", version.ref = "mpandroidchart" }
+ycharts = { module = "co.yml:ycharts", version.ref = "ycharts" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

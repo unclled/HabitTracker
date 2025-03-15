@@ -15,6 +15,7 @@ import java.util.Calendar
 import java.util.Locale
 
 class HabitsVM(application: Application) : AndroidViewModel(application) {
+
     private val repository: HabitRepository
     val habits: LiveData<List<HabitEntity>>
     private val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())

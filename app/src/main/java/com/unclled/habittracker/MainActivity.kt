@@ -35,6 +35,7 @@ import com.unclled.habittracker.ui.add_habit.view.AddHabitView
 import com.unclled.habittracker.ui.habits.view.HabitsView
 import com.unclled.habittracker.ui.habits.viewmodel.HabitsVM
 import com.unclled.habittracker.ui.statistic.view.StatisticView
+import com.unclled.habittracker.ui.statistic.viewmodel.StatisticVM
 
 class MainActivity : ComponentActivity() {
 
@@ -76,6 +77,7 @@ class MainActivity : ComponentActivity() {
 fun Main() {
     val navController = rememberNavController()
     val habitsVM: HabitsVM = viewModel()
+    val statisticVM: StatisticVM = viewModel()
     var navNum by rememberSaveable { mutableIntStateOf(0) }
     var mode by rememberSaveable { mutableIntStateOf(0) }
     Box(modifier = Modifier.fillMaxSize()) {
@@ -86,7 +88,7 @@ fun Main() {
                     navController = navController,
                     onHabitSaved = { newNavNum -> navNum = newNavNum })
             }
-            composable(NavRoutes.Statistic.route) { StatisticView() }
+            composable(NavRoutes.Statistic.route) { StatisticView(statisticVM) }
         }
         UpperBar(
             navNum = navNum,

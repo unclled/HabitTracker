@@ -32,4 +32,10 @@ class HabitRepository(private val habitDao: HabitDao) {
             habitDao.getAnyHabit()
         }
     }
+
+    suspend fun getDaysInRow(): List<Int> {
+        return withContext(Dispatchers.IO) {
+            habitDao.getDaysInRow()
+        }
+    }
 }

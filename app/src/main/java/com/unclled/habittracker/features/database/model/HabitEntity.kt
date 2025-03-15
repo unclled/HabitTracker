@@ -25,5 +25,6 @@ data class HabitEntity(
     val daysInRow: Int = 0,
     val imageUri: String?,
     val dateOfCreating: String,
-    val lastActivityCheck: String?
+    val lastActivityCheck: String?,
+    //val nextActivityCheck: String?
 )

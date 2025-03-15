@@ -1,6 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.android) version "1.9.0"
     alias(libs.plugins.devtoolsKsp)
 }
 
@@ -79,5 +79,5 @@ dependencies {
     ksp(libs.androidx.room.room.compiler)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.dagger)
-    //kapt(libs.dagger.compiler)
+    implementation("com.github.jaikeerthick:Composable-Graphs:v1.2.2")
 }
