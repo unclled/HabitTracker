@@ -1,22 +1,15 @@
 package com.unclled.habittracker.ui.habits.viewmodel
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.viewModelScope
 import com.unclled.habittracker.features.database.HabitRepository
 import com.unclled.habittracker.features.database.HabitsDatabase
-import com.unclled.habittracker.features.database.model.HabitEntity
 import com.unclled.habittracker.features.database.model.HabitWithDetails
 import com.unclled.habittracker.features.database.model.ReminderTimeEntity
-import com.unclled.habittracker.ui.habits.model.DayOfWeek
 import com.unclled.habittracker.utils.DateFormatter
 import kotlinx.coroutines.launch
-import java.text.ParseException
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Locale
 
 class HabitsVM(application: Application) : AndroidViewModel(application) {
 

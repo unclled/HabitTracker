@@ -66,8 +66,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.unclled.habittracker.navigation.NavRoutes
-import com.unclled.habittracker.ui.add_habit.viewmodel.AddHabitVM
 import com.unclled.habittracker.theme.LocalColors
+import com.unclled.habittracker.ui.add_habit.viewmodel.AddHabitVM
 import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
 
@@ -75,7 +75,9 @@ import kotlin.math.absoluteValue
 fun AddHabitView(
     vm: AddHabitVM = viewModel(),
     navController: NavController,
-    onHabitSaved: (Int) -> Unit
+    onHabitSaved: (Int) -> Unit,
+    mode: Int,
+    habitId: Long
 ) {
     val buttonStates = vm.buttonStates
     val selectedItemIndex = vm.selectedItemIndex
@@ -85,7 +87,6 @@ fun AddHabitView(
 
     val context = LocalContext.current
     val colors = LocalColors.current
-
     Column(
         modifier = Modifier
             .systemBarsPadding()
@@ -123,7 +124,12 @@ fun AddHabitView(
                             if (buttonStates[i])
                                 countStates += i
                         if (countStates != "") {
-                            vm.saveToDatabase(selectedItemIndex, countStates)
+                            vm.countStates = countStates
+                            if (mode == 1) {
+                                vm.updateHabitData(habitId, selectedItemIndex)
+                            } else {
+                                vm.saveToDatabase(selectedItemIndex, countStates)
+                            }
                             onHabitSaved(0)
                             navController.navigate(NavRoutes.Habits.route)
                         } else {
@@ -134,7 +140,11 @@ fun AddHabitView(
                             ).show()
                         }
                     } else {
-                        vm.saveToDatabase(selectedItemIndex)
+                        if (mode == 1) {
+                            vm.updateHabitData(habitId, selectedItemIndex)
+                        } else {
+                            vm.saveToDatabase(selectedItemIndex)
+                        }
                         onHabitSaved(0)
                         navController.navigate(NavRoutes.Habits.route)
                     }

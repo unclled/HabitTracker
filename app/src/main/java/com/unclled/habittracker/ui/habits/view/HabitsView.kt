@@ -44,11 +44,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.unclled.habittracker.R
 import com.unclled.habittracker.features.database.model.ActivityEntity
 import com.unclled.habittracker.features.database.model.HabitEntity
 import com.unclled.habittracker.features.database.model.ReminderTimeEntity
+import com.unclled.habittracker.navigation.NavRoutes
 import com.unclled.habittracker.theme.LocalColors
 import com.unclled.habittracker.ui.habits.viewmodel.HabitsVM
 import com.unclled.habittracker.utils.DateFormatter
@@ -61,7 +63,13 @@ import java.util.Calendar
 import java.util.Locale
 
 @Composable
-fun HabitsView(vm: HabitsVM, mode: Int) {
+fun HabitsView(
+    vm: HabitsVM,
+    mode: Int,
+    navController: NavController,
+    onHabitEdit: (Int) -> Unit,
+    onPassId: (Long) -> Unit
+) {
     val colors = LocalColors.current
     val habits by vm.habits.observeAsState(emptyList())
 
@@ -75,7 +83,16 @@ fun HabitsView(vm: HabitsVM, mode: Int) {
                 .fillMaxSize()
         ) {
             items(habits) { habit ->
-                ItemCard(habit.habit, habit.activityInfo, habit.reminderTime, vm, mode)
+                ItemCard(
+                    habit.habit,
+                    habit.activityInfo,
+                    habit.reminderTime,
+                    vm,
+                    mode,
+                    navController,
+                    onHabitEdit,
+                    onPassId
+                )
                 Spacer(Modifier.padding(vertical = 8.dp))
             }
         }
@@ -90,7 +107,10 @@ fun ItemCard(
     activity: ActivityEntity,
     reminder: ReminderTimeEntity,
     vm: HabitsVM,
-    mode: Int
+    mode: Int,
+    navController: NavController,
+    onHabitEdit: (Int) -> Unit,
+    onPassId: (Long) -> Unit
 ) {
     val alpha = 0.2f
     val enabled = false
@@ -105,7 +125,11 @@ fun ItemCard(
                 contentAlignment = Alignment.Center
             ) {
                 IconButton(
-                    onClick = { /* TODO update habit data */ },
+                    onClick = {
+                        onHabitEdit(2)
+                        navController.navigate(NavRoutes.AddHabit.route)
+                        onPassId(habit.id)
+                    },
                     modifier = Modifier
                         .fillMaxSize()
                         .background(colors.background)

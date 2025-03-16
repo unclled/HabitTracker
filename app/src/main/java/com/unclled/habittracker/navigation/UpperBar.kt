@@ -32,6 +32,7 @@ fun UpperBar(navNum: Int, mode: Int, onModeChanged: (Int) -> Unit, modifier: Mod
         0 -> "Цели"
         -1 -> "Добавить цель"
         1 -> "Статистика"
+        2 -> "Изменить цель"
         else -> ""
     }
     Box(

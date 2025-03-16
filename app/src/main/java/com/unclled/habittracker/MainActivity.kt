@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -44,7 +45,11 @@ class MainActivity : ComponentActivity() {
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (!isGranted) {
-                Toast.makeText(this, "Разрешите уведомления, чтобы не забывать о своих целях!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this,
+                    "Разрешите уведомления, чтобы не забывать о своих целях!",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
 
@@ -56,7 +61,11 @@ class MainActivity : ComponentActivity() {
         notificationChannelFactory.init(this)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
                 requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
@@ -80,13 +89,25 @@ fun Main() {
     val statisticVM: StatisticVM = viewModel()
     var navNum by rememberSaveable { mutableIntStateOf(0) }
     var mode by rememberSaveable { mutableIntStateOf(0) }
+    var habitId by rememberSaveable { mutableLongStateOf(-1) }
     Box(modifier = Modifier.fillMaxSize()) {
         NavHost(navController, startDestination = NavRoutes.Habits.route) {
-            composable(NavRoutes.Habits.route) { HabitsView(vm = habitsVM, mode) }
+            composable(NavRoutes.Habits.route) {
+                HabitsView(
+                    vm = habitsVM,
+                    mode = mode,
+                    navController = navController,
+                    onHabitEdit = { newNavNum -> navNum = newNavNum},
+                    onPassId = { passedId -> habitId = passedId}
+                )
+            }
             composable(NavRoutes.AddHabit.route) {
                 AddHabitView(
                     navController = navController,
-                    onHabitSaved = { newNavNum -> navNum = newNavNum })
+                    onHabitSaved = { newNavNum -> navNum = newNavNum },
+                    mode = mode,
+                    habitId = habitId
+                )
             }
             composable(NavRoutes.Statistic.route) { StatisticView(statisticVM) }
         }

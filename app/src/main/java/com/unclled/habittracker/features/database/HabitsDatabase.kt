@@ -20,14 +20,11 @@ abstract class HabitsDatabase : RoomDatabase() {
 
         fun getInstance(context: Context): HabitsDatabase {
             return INSTANCE ?: synchronized(this) {
-                //context.deleteDatabase("habits")
                 val instance = databaseBuilder(
                     context.applicationContext,
                     HabitsDatabase::class.java,
                     "habits"
                 )
-                    //.fallbackToDestructiveMigration()
-                    //.createFromAsset("reminderTime.db")
                     .build()
                 INSTANCE = instance
                 instance

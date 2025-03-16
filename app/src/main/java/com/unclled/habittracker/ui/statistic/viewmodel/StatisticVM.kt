@@ -1,9 +1,7 @@
 package com.unclled.habittracker.ui.statistic.viewmodel
 
 import android.app.Application
-import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
@@ -26,7 +24,7 @@ class StatisticVM(application: Application) : AndroidViewModel(application) {
         getNumberOfHabits()
     }
 
-    private fun getDaysInRow() {
+    fun getDaysInRow() {
         viewModelScope.launch {
             daysInRow = repository.getDaysInRow()
         }

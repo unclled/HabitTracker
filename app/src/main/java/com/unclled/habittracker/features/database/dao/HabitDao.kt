@@ -54,7 +54,8 @@ interface HabitDao {
         FROM habit
         JOIN activity ON habit.activityId = activity.activityEntityId
         JOIN reminderTime ON habit.reminderId = reminderTime.reminderEntityId
-    """)
+    """
+    )
     fun getAllHabitsWithDetails(): LiveData<List<HabitWithDetails>>
 
     @Query("SELECT daysInRow FROM activity")
@@ -71,16 +72,21 @@ interface HabitDao {
             lastActivityCheck = :lastActivityCheck, 
             nextActivityCheck = :nextActivityCheck
         WHERE activityEntityId = :id
-    """)
+    """
+    )
     suspend fun updateDaysInRow(id: Long, lastActivityCheck: String, nextActivityCheck: String?)
 
     @Query("UPDATE activity SET daysInRow = daysInRow + 1 WHERE activityEntityId = :id")
     suspend fun increaseDayInRow(id: Long)
 
-//    @Query("UPDATE habit SET habitName = :name, habitDescription = :desc, reminder = :reminder, " +
-//            "reminderId = :remId, imageUri = :imageUri WHERE id = :id")
-//    suspend fun updateHabitData(id: Long, name: String, desc: String, reminder: String, remId: Int, imageUri: String)
+    @Update
+    fun updateReminderTime(reminder: ReminderTimeEntity)
 
+    @Query("UPDATE activity SET nextActivityCheck = :nextActivityCheck WHERE activityEntityId = :id")
+    fun updateActivity(id: Long, nextActivityCheck: String)
+
+    @Update
+    fun updateHabit(habit: HabitEntity)
 
     /* DELETE */
     @Transaction

@@ -1,7 +1,6 @@
 package com.unclled.habittracker.ui.statistic.view
 
 import android.content.Context.MODE_PRIVATE
-import android.content.SharedPreferences
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +15,7 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,6 +38,11 @@ fun StatisticView(vm: StatisticVM) {
     val context = LocalContext.current
     val colors = LocalColors.current
     val sharedPreferences = context.getSharedPreferences("data", MODE_PRIVATE)
+
+    LaunchedEffect(Unit) {
+        vm.getDaysInRow()
+        vm.getNumberOfHabits()
+    }
 
     val daysInRowList = vm.daysInRow
 

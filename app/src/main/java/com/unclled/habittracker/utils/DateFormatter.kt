@@ -10,8 +10,8 @@ import kotlin.collections.addAll
 
 class DateFormatter {
     val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
-    val calendar = Calendar.getInstance()
-    val formattedDate = dateFormat.format(calendar.time)
+    val calendar: Calendar = Calendar.getInstance()
+    val formattedDate: String = dateFormat.format(calendar.time)
 
 
     fun convertToDayOfWeek(days: String, reminderId: Int): List<DayOfWeek> {

@@ -21,9 +21,6 @@ import kotlinx.coroutines.launch
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Locale
 
 class AddHabitVM(application: Application) : AndroidViewModel(application) {
     private val repository: HabitRepository
@@ -34,6 +31,7 @@ class AddHabitVM(application: Application) : AndroidViewModel(application) {
     var habitDescription by mutableStateOf(TextFieldValue(""))
     var selectedPeriodValue by mutableIntStateOf(2)
     var imageUri by mutableStateOf("")
+    var countStates by mutableStateOf("")
 
     private val utils = DateFormatter()
 
@@ -46,18 +44,18 @@ class AddHabitVM(application: Application) : AndroidViewModel(application) {
         _buttonStates[index] = !_buttonStates[index]
     }
 
-    fun saveToDatabase(reminderId: Int, countStates: String) {
+    fun saveToDatabase(remindId: Int, countStates: String) {
         viewModelScope.launch {
             val reminderTimeId = repository.insertReminderTime(
                 ReminderTimeEntity(
                     reminderEntityId = 0,
-                    remindId = reminderId,
+                    remindId = remindId,
                     reminder = countStates
                 )
             )
             val nextActivityCheck = utils.getNextNotificationDate(
                 utils.formattedDate,
-                ReminderTimeEntity(reminderTimeId, reminderId, countStates)
+                ReminderTimeEntity(reminderTimeId, remindId, countStates)
             )
             val activityId = repository.insertActivity(
                 ActivityEntity(
@@ -80,19 +78,19 @@ class AddHabitVM(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun saveToDatabase(reminderId: Int) {
-        var reminder = if (reminderId == 0) "1" else selectedPeriodValue.toString()
+    fun saveToDatabase(remindId: Int) {
+        var reminder = if (remindId == 0) "1" else selectedPeriodValue.toString()
         viewModelScope.launch {
             val reminderTimeId = repository.insertReminderTime(
                 ReminderTimeEntity(
                     reminderEntityId = 0,
-                    remindId = reminderId,
+                    remindId = remindId,
                     reminder = reminder
                 )
             )
             val nextActivityCheck = utils.getNextNotificationDate(
                 utils.formattedDate,
-                ReminderTimeEntity(reminderTimeId, reminderId, reminder)
+                ReminderTimeEntity(reminderTimeId, remindId, reminder)
             )
             val activityId = repository.insertActivity(
                 ActivityEntity(
@@ -132,6 +130,37 @@ class AddHabitVM(application: Application) : AndroidViewModel(application) {
         } catch (e: Exception) {
             e.printStackTrace()
             null
+        }
+    }
+
+    fun updateHabitData(id: Long, remindId: Int) {
+        var reminder =
+            if (remindId == 0) "1"
+            else if (remindId == 2 || remindId == 4) selectedPeriodValue.toString()
+            else countStates
+        viewModelScope.launch {
+            repository.updateReminderTime(
+                ReminderTimeEntity(
+                    reminderEntityId = id,
+                    remindId = remindId,
+                    reminder = reminder
+                )
+            )
+            val nextActivityCheck = utils.getNextNotificationDate(
+                utils.formattedDate,
+                ReminderTimeEntity(id, remindId, reminder)
+            )
+            repository.updateActivity(id, nextActivityCheck!!)
+            val newHabit = HabitEntity(
+                id = id,
+                habitName = habitName.text,
+                habitDescription = habitDescription.text,
+                imageUri = imageUri,
+                reminderId = id,
+                activityId = id
+            )
+
+            repository.updateHabit(newHabit)
         }
     }
 }

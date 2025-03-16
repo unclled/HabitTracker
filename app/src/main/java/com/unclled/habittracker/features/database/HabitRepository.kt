@@ -51,12 +51,6 @@ class HabitRepository(private val habitDao: HabitDao) {
         }
     }
 
-    suspend fun getMaxDaysInRow(): Int {
-        return withContext(Dispatchers.IO) {
-            habitDao.getMaxDaysInRow()
-        }
-    }
-
     suspend fun updateCheckInformation(
         id: Long,
         lastActivityCheck: String,
@@ -64,6 +58,24 @@ class HabitRepository(private val habitDao: HabitDao) {
     ) {
         withContext(Dispatchers.IO) {
             habitDao.updateDaysInRow(id, lastActivityCheck, nextActivityCheck)
+        }
+    }
+
+    suspend fun updateReminderTime(reminder: ReminderTimeEntity) {
+        withContext(Dispatchers.IO) {
+            habitDao.updateReminderTime(reminder)
+        }
+    }
+
+    suspend fun updateActivity(id: Long, nextActivityCheck: String) {
+        withContext(Dispatchers.IO) {
+            habitDao.updateActivity(id, nextActivityCheck)
+        }
+    }
+
+    suspend fun updateHabit(habit: HabitEntity) {
+        withContext(Dispatchers.IO) {
+            habitDao.updateHabit(habit)
         }
     }
 }
