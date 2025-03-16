@@ -13,7 +13,10 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.unclled.habittracker.features.database.HabitsDatabase
 import com.unclled.habittracker.features.database.HabitRepository
+import com.unclled.habittracker.features.database.model.ActivityEntity
 import com.unclled.habittracker.features.database.model.HabitEntity
+import com.unclled.habittracker.features.database.model.ReminderTimeEntity
+import com.unclled.habittracker.utils.DateFormatter
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.InputStream
@@ -31,9 +34,8 @@ class AddHabitVM(application: Application) : AndroidViewModel(application) {
     var habitDescription by mutableStateOf(TextFieldValue(""))
     var selectedPeriodValue by mutableIntStateOf(2)
     var imageUri by mutableStateOf("")
-    private val calendar = Calendar.getInstance()
-    private val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
-    private val formattedDate = dateFormat.format(calendar.time)
+
+    private val utils = DateFormatter()
 
     init {
         val habitDao = HabitsDatabase.getInstance(application).getHabitDao()
@@ -45,38 +47,70 @@ class AddHabitVM(application: Application) : AndroidViewModel(application) {
     }
 
     fun saveToDatabase(reminderId: Int, countStates: String) {
-        val newHabit = HabitEntity(
-            id = 0,
-            habitName = habitName.text,
-            habitDescription = habitDescription.text,
-            reminder = countStates,
-            reminderId = reminderId,
-            imageUri = imageUri,
-            dateOfCreating = formattedDate,
-            lastActivityCheck = "" /* TODO check if confirmation day skipped */
-        )
-
         viewModelScope.launch {
+            val reminderTimeId = repository.insertReminderTime(
+                ReminderTimeEntity(
+                    reminderEntityId = 0,
+                    remindId = reminderId,
+                    reminder = countStates
+                )
+            )
+            val nextActivityCheck = utils.getNextNotificationDate(
+                utils.formattedDate,
+                ReminderTimeEntity(reminderTimeId, reminderId, countStates)
+            )
+            val activityId = repository.insertActivity(
+                ActivityEntity(
+                    activityEntityId = 0,
+                    dateOfCreating = utils.formattedDate,
+                    lastActivityCheck = "01-01-2000",
+                    nextActivityCheck = nextActivityCheck
+                )
+            )
+            val newHabit = HabitEntity(
+                id = 0,
+                habitName = habitName.text,
+                habitDescription = habitDescription.text,
+                imageUri = imageUri,
+                reminderId = reminderTimeId,
+                activityId = activityId
+            )
+
             repository.insertNewHabit(newHabit)
         }
     }
 
     fun saveToDatabase(reminderId: Int) {
-        var reminder = selectedPeriodValue.toString()
-        if (reminderId == 0)
-            reminder = "1"
-        val newHabit = HabitEntity(
-            id = 0,
-            habitName = habitName.text,
-            habitDescription = habitDescription.text,
-            reminder = reminder,
-            reminderId = reminderId,
-            imageUri = imageUri,
-            dateOfCreating = formattedDate,
-            lastActivityCheck = "" /* TODO */
-        )
-
+        var reminder = if (reminderId == 0) "1" else selectedPeriodValue.toString()
         viewModelScope.launch {
+            val reminderTimeId = repository.insertReminderTime(
+                ReminderTimeEntity(
+                    reminderEntityId = 0,
+                    remindId = reminderId,
+                    reminder = reminder
+                )
+            )
+            val nextActivityCheck = utils.getNextNotificationDate(
+                utils.formattedDate,
+                ReminderTimeEntity(reminderTimeId, reminderId, reminder)
+            )
+            val activityId = repository.insertActivity(
+                ActivityEntity(
+                    activityEntityId = 0,
+                    dateOfCreating = utils.formattedDate,
+                    lastActivityCheck = "01-01-2000",
+                    nextActivityCheck = nextActivityCheck
+                )
+            )
+            val newHabit = HabitEntity(
+                id = 0,
+                habitName = habitName.text,
+                habitDescription = habitDescription.text,
+                imageUri = imageUri,
+                reminderId = reminderTimeId,
+                activityId = activityId
+            )
+
             repository.insertNewHabit(newHabit)
         }
     }

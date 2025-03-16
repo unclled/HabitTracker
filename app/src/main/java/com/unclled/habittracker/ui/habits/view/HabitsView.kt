@@ -46,12 +46,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.unclled.habittracker.R
+import com.unclled.habittracker.features.database.model.ActivityEntity
 import com.unclled.habittracker.features.database.model.HabitEntity
+import com.unclled.habittracker.features.database.model.ReminderTimeEntity
 import com.unclled.habittracker.theme.LocalColors
-import com.unclled.habittracker.ui.habits.model.DayOfWeek
 import com.unclled.habittracker.ui.habits.viewmodel.HabitsVM
+import com.unclled.habittracker.utils.DateFormatter
 import java.io.File
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.Calendar
 import java.util.Locale
 
@@ -70,7 +75,7 @@ fun HabitsView(vm: HabitsVM, mode: Int) {
                 .fillMaxSize()
         ) {
             items(habits) { habit ->
-                ItemCard(habit, vm, mode)
+                ItemCard(habit.habit, habit.activityInfo, habit.reminderTime, vm, mode)
                 Spacer(Modifier.padding(vertical = 8.dp))
             }
         }
@@ -80,13 +85,19 @@ fun HabitsView(vm: HabitsVM, mode: Int) {
 }
 
 @Composable
-fun ItemCard(habit: HabitEntity, vm: HabitsVM, mode: Int) {
+fun ItemCard(
+    habit: HabitEntity,
+    activity: ActivityEntity,
+    reminder: ReminderTimeEntity,
+    vm: HabitsVM,
+    mode: Int
+) {
     val alpha = 0.2f
     val enabled = false
     val colors = LocalColors.current
     when (mode) {
         0 -> { //обычное представление
-            InnerItems(vm, habit)
+            InnerItems(vm, habit, activity, reminder)
         }
 
         1 -> { //редактирование цели
@@ -107,7 +118,7 @@ fun ItemCard(habit: HabitEntity, vm: HabitsVM, mode: Int) {
                         tint = colors.text
                     )
                 }
-                InnerItems(vm, habit, alpha, enabled)
+                InnerItems(vm, habit, activity, reminder, alpha, enabled)
             }
         }
 
@@ -129,7 +140,7 @@ fun ItemCard(habit: HabitEntity, vm: HabitsVM, mode: Int) {
                         tint = colors.text
                     )
                 }
-                InnerItems(vm, habit, alpha, enabled)
+                InnerItems(vm, habit, activity, reminder, alpha, enabled)
             }
         }
     }
@@ -137,46 +148,29 @@ fun ItemCard(habit: HabitEntity, vm: HabitsVM, mode: Int) {
 }
 
 @Composable
-fun InnerItems(vm: HabitsVM, habit: HabitEntity, alpha: Float = 1f, enabled: Boolean = true) {
+fun InnerItems(
+    vm: HabitsVM,
+    habit: HabitEntity,
+    activity: ActivityEntity,
+    reminder: ReminderTimeEntity,
+    alpha: Float = 1f,
+    enabled: Boolean = true
+) {
     val colors = LocalColors.current
     val nameChangedCase = vm.nameLikeInSentences(habit.habitName)
-    val reminderId = habit.reminderId
-    val selectedDays = vm.convertToDayOfWeek(habit.reminder, reminderId)
+    val utils = DateFormatter()
     val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+    val dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
     val calendar = Calendar.getInstance()
 
-    val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK) - 2
-    val currentDayOfWeek: DayOfWeek = if (dayOfWeek < 0) {
-        DayOfWeek.entries[dayOfWeek + 7]
-    } else {
-        DayOfWeek.entries[dayOfWeek]
-    }
-    val comeBackIn = when (reminderId) {
-        0, 1 -> {
-            val form = dateFormat.parse(habit.dateOfCreating)
-            if (dateFormat.format(form!!.time) == dateFormat.format(calendar.time) &&
-                habit.daysInRow == 0 && reminderId == 0
-            ) {
-                0
-            } else {
-                vm.calculateDaysUntilNextNotification(
-                    vm.getNextNotificationDate(
-                        selectedDays,
-                        currentDayOfWeek
-                    ),
-                    currentDayOfWeek
-                )
-            }
+    val currentDate = LocalDate.parse(dateFormat.format(calendar.time), dateFormatter)
+    val nextActivityDate = LocalDate.parse(activity.nextActivityCheck, dateFormatter)
+    val comeBackIn =
+        if (activity.dateOfCreating == dateFormat.format(calendar.time) && activity.daysInRow == 0) {
+            0
+        } else {
+            ChronoUnit.DAYS.between(currentDate, nextActivityDate).toInt()
         }
-
-        2, 3, 4 -> {
-            vm.calculateDaysUntilNextDate(
-                vm.getNextNotificationDate(habit)
-            )
-        }
-
-        else -> 0
-    }
 
     Column(
         modifier = Modifier
@@ -257,7 +251,7 @@ fun InnerItems(vm: HabitsVM, habit: HabitEntity, alpha: Float = 1f, enabled: Boo
             ) {
                 Text(
                     if (comeBackIn != 0) {
-                        "Возвращайтесь через\n" + comeBackIn + " " + vm.dayAddition(comeBackIn)
+                        "Возвращайтесь через\n" + comeBackIn + " " + utils.dayAddition(comeBackIn)
                     } else {
                         "Пора подтвердить активность!"
                     },
@@ -268,7 +262,14 @@ fun InnerItems(vm: HabitsVM, habit: HabitEntity, alpha: Float = 1f, enabled: Boo
                 )
 
                 Button(
-                    onClick = { vm.increaseDayInRow(habit.id) },
+                    onClick = {
+                        vm.increaseDayInRow(habit.id)
+                        vm.updateNextActivityCheck(
+                            habit.id,
+                            dateFormat.format(calendar.time),
+                            reminder
+                        )
+                    },
                     enabled = (comeBackIn <= 0 && enabled),
                     modifier = Modifier
                         .padding(top = 10.dp)
@@ -307,7 +308,7 @@ fun InnerItems(vm: HabitsVM, habit: HabitEntity, alpha: Float = 1f, enabled: Boo
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    habit.daysInRow.toString(),
+                    activity.daysInRow.toString(),
                     fontSize = 28.sp,
                     color = colors.icon,
                     textAlign = TextAlign.Center
@@ -344,7 +345,7 @@ fun NothingToShow() {
             fontWeight = FontWeight.Bold,
             color = colors.secondaryText,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 10.dp, start = 14.dp, end = 14.dp)
+            modifier = Modifier.padding(top = 6.dp, start = 14.dp, end = 14.dp)
         )
     }
 }

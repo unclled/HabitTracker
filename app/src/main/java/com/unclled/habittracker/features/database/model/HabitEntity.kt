@@ -7,12 +7,18 @@ import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "habit",
-    indices = [Index("id")],
     foreignKeys = [
         ForeignKey(
             entity = ReminderTimeEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["reminderId"]
+            parentColumns = ["reminderEntityId"],
+            childColumns = ["reminderId"],
+            onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = ActivityEntity::class,
+            parentColumns = ["activityEntityId"],
+            childColumns = ["activityId"],
+            onDelete = ForeignKey.CASCADE
         )
     ]
 )
@@ -20,11 +26,7 @@ data class HabitEntity(
     @PrimaryKey(autoGenerate = true) val id: Long,
     val habitName: String,
     val habitDescription: String,
-    val reminder: String,
-    val reminderId: Int,
-    val daysInRow: Int = 0,
     val imageUri: String?,
-    val dateOfCreating: String,
-    val lastActivityCheck: String?,
-    //val nextActivityCheck: String?
+    val reminderId: Long,
+    val activityId: Long
 )

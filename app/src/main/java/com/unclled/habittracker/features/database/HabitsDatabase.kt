@@ -5,10 +5,11 @@ import androidx.room.Database
 import androidx.room.Room.databaseBuilder
 import androidx.room.RoomDatabase
 import com.unclled.habittracker.features.database.dao.HabitDao
+import com.unclled.habittracker.features.database.model.ActivityEntity
 import com.unclled.habittracker.features.database.model.HabitEntity
 import com.unclled.habittracker.features.database.model.ReminderTimeEntity
 
-@Database(version = 1, entities = [HabitEntity::class, ReminderTimeEntity::class])
+@Database(version = 1, entities = [HabitEntity::class, ReminderTimeEntity::class, ActivityEntity::class])
 abstract class HabitsDatabase : RoomDatabase() {
 
     abstract fun getHabitDao(): HabitDao
@@ -26,7 +27,7 @@ abstract class HabitsDatabase : RoomDatabase() {
                     "habits"
                 )
                     //.fallbackToDestructiveMigration()
-                    .createFromAsset("reminderTime.db")
+                    //.createFromAsset("reminderTime.db")
                     .build()
                 INSTANCE = instance
                 instance
