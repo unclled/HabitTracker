@@ -274,7 +274,7 @@ fun InnerItems(
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    if (comeBackIn != 0) {
+                    if (comeBackIn > 0) {
                         "Возвращайтесь через\n" + comeBackIn + " " + utils.dayAddition(comeBackIn)
                     } else {
                         "Пора подтвердить активность!"

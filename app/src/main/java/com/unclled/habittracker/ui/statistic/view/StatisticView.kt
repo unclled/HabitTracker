@@ -19,6 +19,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -27,9 +28,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jaikeerthick.composable_graphs.composables.bar.BarGraph
 import com.jaikeerthick.composable_graphs.composables.bar.model.BarData
+import com.jaikeerthick.composable_graphs.composables.bar.style.BarGraphColors
+import com.jaikeerthick.composable_graphs.composables.bar.style.BarGraphFillType
 import com.jaikeerthick.composable_graphs.composables.bar.style.BarGraphStyle
 import com.jaikeerthick.composable_graphs.composables.bar.style.BarGraphVisibility
 import com.jaikeerthick.composable_graphs.style.LabelPosition
+import com.unclled.habittracker.theme.ColorPalette
 import com.unclled.habittracker.theme.LocalColors
 import com.unclled.habittracker.ui.statistic.viewmodel.StatisticVM
 
@@ -78,8 +82,24 @@ fun ShowGraph(daysInRow: List<Int>) {
         visibility = BarGraphVisibility(
             isYAxisLabelVisible = true
         ),
-        yAxisLabelPosition = LabelPosition.RIGHT
+        yAxisLabelPosition = LabelPosition.RIGHT,
+        colors = BarGraphColors(
+            xAxisTextColor = colors.text,
+            yAxisTextColor = colors.text,
+            fillType = BarGraphFillType.Gradient(
+                brush = Brush.verticalGradient(
+                    listOf(
+                        Color(133, 231, 159),
+                        Color(116, 224, 155),
+                        Color(150, 239, 163),
+                        Color(167, 245, 167),
+                        Color(184, 251, 191)
+                    )
+                )
+            )
+        )
     )
+
 
     Text(
         "Дней подряд у каждой цели",
@@ -116,7 +136,7 @@ fun StatisticPoint(message: String, number: Int) {
             modifier = Modifier
                 .size(60.dp)
                 .clip(CircleShape)
-                .border(1.dp, Color.Green, CircleShape)
+                .border(1.dp, Color(133, 231, 159), CircleShape)
                 .background(colors.background),
             contentAlignment = Alignment.Center
         ) {
